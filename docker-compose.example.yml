@@ -1,0 +1,11 @@
+version: "3.7"
+
+services:
+  bins:
+    image: bins
+    restart: always
+    environment:
+      - TELEGRAM_TOKEN=telegram_api_access_token
+      - TELEGRAM_CHAT_ID=-123456789
+      - HOUSE_NUMBER=123
+      - HOUSE_POSTCODE=SG7XXX
