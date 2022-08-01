@@ -140,3 +140,5 @@ cython_debug/
 *.tar
 
 docker-compose.yml
+
+.vscode

@@ -3,7 +3,12 @@ import telegram
 
 logger = logging.getLogger()
 
+
 class TelegramClient:
+    """
+    Used to send Telegram messages via a specified bot token and chat id.
+    """
+
     def __init__(self, api_token: str) -> None:
         self.token = api_token
         self.bot = telegram.Bot(token=self.token)

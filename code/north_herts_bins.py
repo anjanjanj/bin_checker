@@ -12,7 +12,9 @@ logger = logging.getLogger()
 HOME_URL = 'https://uhtn-wrp.whitespacews.com/mop.php#!'
 SEARCH_URL_CONTAINS = 'serviceID=A'
 
-def get_north_herts_bins(number: str, postcode: str) -> List[Tuple[datetime, str]]:
+
+def get_north_herts_bins(number: str,
+                         postcode: str) -> List[Tuple[datetime, str]]:
     address_name_number = number
     address_postcode = postcode
 
@@ -26,8 +28,8 @@ def get_north_herts_bins(number: str, postcode: str) -> List[Tuple[datetime, str
 
     search_url = link['href']
 
-    # the address search url to post to is just the form url with seq=2 instead of seq=1
-    # so build that url here
+    # the address search url to post to is just the form url with seq=2
+    # instead of seq=1, so build that url here
     params = {'seq': '2'}
     url_parts = urlparse(search_url)
     query = dict(parse_qsl(url_parts.query))
@@ -37,8 +39,12 @@ def get_north_herts_bins(number: str, postcode: str) -> List[Tuple[datetime, str
 
     # post to retrieve address results
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
-    data = {'address_name_number': address_name_number, 'address_postcode': address_postcode}
-    results_request = requests.post(search_action_url, data=data, headers=headers)
+
+    data = {'address_name_number': address_name_number,
+            'address_postcode': address_postcode}
+
+    results_request = requests.post(search_action_url,
+                                    data=data, headers=headers)
 
     results_soup = BeautifulSoup(results_request.content, 'html.parser')
 
@@ -49,14 +55,16 @@ def get_north_herts_bins(number: str, postcode: str) -> List[Tuple[datetime, str
     # log the full address name found
     logger.info(link.text)
 
-    # the link href they provide is relative so join it to our base url before making request
+    # the link href they provide is relative so join it to
+    # our base url before making request
     final_url = urljoin(HOME_URL, results_url)
 
     final_request = requests.post(final_url, headers=headers)
 
     final_soup = BeautifulSoup(final_request.content, 'html.parser')
 
-    # find all collection dates and descriptions and clean them into a list of tuples
+    # find all collection dates and descriptions and clean them into
+    # a list of tuples
     lis = final_soup.find_all('li')
     lis_strings = list(map(lambda l: l.text.strip(), lis))
 
@@ -67,6 +75,7 @@ def get_north_herts_bins(number: str, postcode: str) -> List[Tuple[datetime, str
 
     uncleaned_list = list(chunks(lis_strings, 3))
     cleaned_list = [row for row in uncleaned_list if len(row) == 3]
-    cleaned_list = [(parser.parse(row[1], dayfirst=True), row[2]) for row in cleaned_list]
+    cleaned_list = [(parser.parse(row[1], dayfirst=True), row[2])
+                    for row in cleaned_list]
 
-    return(cleaned_list)
+    return cleaned_list
