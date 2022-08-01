@@ -5,6 +5,8 @@ Because I always forget when bin day is and which bins it is.
 
 *(North Herts addresses only!)*
 
+![example](https://raw.githubusercontent.com/anjanjanj/bin_checker/master/.github/message.png)
+
 ### Deploy (via Docker)
 Build image: `docker build -t bins .`
 
