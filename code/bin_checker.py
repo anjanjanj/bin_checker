@@ -22,12 +22,17 @@ class BinChecker:
         self.last_update = datetime.min
         self.days_from_now = days_from_now
 
-        # create Telegram client
+        self.telegram = None
+
+    async def create(self) -> None:
         self.telegram = TelegramClient(api_token=getenv("TELEGRAM_TOKEN"))
-
         self.telegram_chat_id = getenv("TELEGRAM_CHAT_ID")
+        await self.telegram.create()
 
-    def run(self) -> None:
+    async def run(self) -> None:
+        if self.telegram is None:
+            await self.create()
+
         house_number = getenv("HOUSE_NUMBER")
         house_postcode = getenv("HOUSE_POSTCODE")
         logging.info("Getting bin data [%s, %s]", house_number, house_postcode)
@@ -60,10 +65,11 @@ class BinChecker:
             for c in collection_list:
                 message += f"\n{c}"
 
-            self.telegram.send_message(chat_id=self.telegram_chat_id,
+            await self.telegram.send_message(chat_id=self.telegram_chat_id,
                                        text=message)
 
             # update last collection sent time so this date won't be sent again
+            # FIXME add persistance now that we are not keeping the process running
             self.last_update = min_date
         else:
             logger.info("No new collections found within time range")
