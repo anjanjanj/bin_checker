@@ -1,4 +1,6 @@
 import logging
+import os
+import pickle
 from datetime import datetime, timedelta
 from os import getenv
 from north_herts_bins import get_north_herts_bins
@@ -19,7 +21,8 @@ class BinChecker:
             the number of days in advance (from today) that we
             should send out notifications for
         """
-        self.last_update = datetime.min
+        self.data_file_path = "data.pkl"
+        self.last_update = self.load_last_update()
         self.days_from_now = days_from_now
 
         self.telegram = None
@@ -28,6 +31,20 @@ class BinChecker:
         self.telegram = TelegramClient(api_token=getenv("TELEGRAM_TOKEN"))
         self.telegram_chat_id = getenv("TELEGRAM_CHAT_ID")
         await self.telegram.create()
+
+    def save_last_update(self, dt: datetime):
+        with open(self.data_file_path, "wb") as f:
+            pickle.dump(dt, f)
+    
+    def load_last_update(self) -> datetime:
+        if not os.path.exists(self.data_file_path):
+            logger.info("No last update time found.")
+            return datetime.min  # or some sensible default like {} or []
+        
+        with open(self.data_file_path, "rb") as f:
+            dt = pickle.load(f)
+            logger.info(f"Loaded last update time: {dt}")
+            return dt
 
     async def run(self) -> None:
         if self.telegram is None:
@@ -69,7 +86,6 @@ class BinChecker:
                                        text=message)
 
             # update last collection sent time so this date won't be sent again
-            # FIXME add persistance now that we are not keeping the process running
-            self.last_update = min_date
+            self.save_last_update(min_date)
         else:
             logger.info("No new collections found within time range")

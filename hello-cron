@@ -1,1 +1,1 @@
-0 */8 * * * /opt/venv/bin/python /usr/local/code/main.py >> /var/log/cron.log 2>&1
+0 */8 * * * cd /usr/local && /opt/venv/bin/python ./code/main.py >> /var/log/cron.log 2>&1

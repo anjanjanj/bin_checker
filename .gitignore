@@ -142,3 +142,5 @@ cython_debug/
 docker-compose.yml
 
 .vscode
+
+*.pkl
