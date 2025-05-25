@@ -54,8 +54,5 @@ def get_north_herts_bins() -> List[Tuple[datetime, str]]:
 
 
 if __name__ == "__main__":
-    if HOME_URL:
-        result = get_north_herts_bins()
-        print(result)
-    else:
-        raise ValueError("HOME_URL environment variable is not set.")
+    result = get_north_herts_bins()
+    print(result)
