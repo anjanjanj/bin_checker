@@ -5,8 +5,10 @@ import re
 from typing import List, Tuple
 from bs4 import BeautifulSoup
 from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
 import time
 from contextlib import closing
+from os import getenv
 
 logger = logging.getLogger()
 
@@ -17,15 +19,22 @@ def get_north_herts_bins() -> List[Tuple[datetime, str]]:
     Recycling portal for upcoming bin collections and returns a List of
     Tuples (collection_date, collection_description)
     """
-    HOME_URL = os.getenv("HOME_URL")
+    HOME_URL = getenv("HOME_URL")
     if not HOME_URL:
         raise ValueError("HOME_URL environment variable is not set.")
     else:
         date_pattern = re.compile(
             r"(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\s+(\d{1,2}(?:st|nd|rd|th)?\s+\w+\s+\d{4})"
         )
-        with closing(webdriver.Chrome()) as driver:
+        options = Options()
+        options.add_argument("--headless")  # Use "--headless=new" if using a very new Chrome
+        options.add_argument("--no-sandbox")
+        options.add_argument("--disable-dev-shm-usage")
+        options.add_argument("--disable-gpu")  # optional, but useful in some cases
+        options.add_argument("--disable-software-rasterizer")
+        with closing(webdriver.Chrome(options=options)) as driver:
             logger.info("Setting up Chrome driver for North Herts bins scraping...")
+
             # Set up the Chrome driver
             driver.implicitly_wait(10)  # Wait for elements to load
             driver.get(HOME_URL)
