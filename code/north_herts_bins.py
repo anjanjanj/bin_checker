@@ -7,13 +7,8 @@ from bs4 import BeautifulSoup
 from selenium import webdriver
 import time
 from contextlib import closing
-import os, dotenv
-
-# Load environment variables from .env file
-dotenv.load_dotenv()
 
 logger = logging.getLogger()
-# url should be your address's waste and recycling collection page
 
 
 def get_north_herts_bins() -> List[Tuple[datetime, str]]:
