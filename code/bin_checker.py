@@ -35,12 +35,12 @@ class BinChecker:
     def save_last_update(self, dt: datetime):
         with open(self.data_file_path, "wb") as f:
             pickle.dump(dt, f)
-    
+
     def load_last_update(self) -> datetime:
         if not os.path.exists(self.data_file_path):
             logger.info("No last update time found.")
             return datetime.min  # or some sensible default like {} or []
-        
+
         with open(self.data_file_path, "rb") as f:
             dt = pickle.load(f)
             logger.info(f"Loaded last update time: {dt}")
@@ -50,10 +50,8 @@ class BinChecker:
         if self.telegram is None:
             await self.create()
 
-        house_number = getenv("HOUSE_NUMBER")
-        house_postcode = getenv("HOUSE_POSTCODE")
-        logging.info("Getting bin data [%s, %s]", house_number, house_postcode)
-        data = get_north_herts_bins(house_number, house_postcode)
+        logging.info("Getting bin data [%s, %s]")
+        data = get_north_herts_bins()
 
         # get the next date in the list
         dates = [e[0] for e in data]
@@ -68,9 +66,7 @@ class BinChecker:
         if (min_date > self.last_update) and (
             now <= min_date <= now + timedelta(days=self.days_from_now)
         ):
-
-            logger.info("New collections found within time range, " +
-                        "sending update")
+            logger.info("New collections found within time range, " + "sending update")
 
             # get relevant collections
             collection_list = [
@@ -82,8 +78,9 @@ class BinChecker:
             for c in collection_list:
                 message += f"\n{c}"
 
-            await self.telegram.send_message(chat_id=self.telegram_chat_id,
-                                       text=message)
+            await self.telegram.send_message(
+                chat_id=self.telegram_chat_id, text=message
+            )
 
             # update last collection sent time so this date won't be sent again
             self.save_last_update(min_date)

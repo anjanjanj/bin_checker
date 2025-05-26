@@ -3,88 +3,65 @@ import logging
 from dateutil import parser
 import re
 from typing import List, Tuple
-from urllib.parse import urlparse, parse_qsl, urlencode, urljoin
-import requests
 from bs4 import BeautifulSoup
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+import time
+from contextlib import closing
+from os import getenv
 
 logger = logging.getLogger()
 
-HOME_URL = "https://uhtn-wrp.whitespacews.com/mop.php#!"
-SEARCH_URL_CONTAINS = "serviceID=A"
 
-
-def get_north_herts_bins(number: str,
-                         postcode: str) -> List[Tuple[datetime, str]]:
+def get_north_herts_bins() -> List[Tuple[datetime, str]]:
     """
     Given a specified house number and postcode, scrapes NHDC Waste and
     Recycling portal for upcoming bin collections and returns a List of
     Tuples (collection_date, collection_description)
     """
+    HOME_URL = getenv("HOME_URL")
+    if not HOME_URL:
+        raise ValueError("HOME_URL environment variable is not set.")
+    else:
+        date_pattern = re.compile(
+            r"(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\s+(\d{1,2}(?:st|nd|rd|th)?\s+\w+\s+\d{4})"
+        )
+        options = Options()
+        options.add_argument("--headless")  # Use "--headless=new" if using a very new Chrome
+        options.add_argument("--no-sandbox")
+        options.add_argument("--disable-dev-shm-usage")
+        options.add_argument("--disable-gpu")  # optional, but useful in some cases
+        options.add_argument("--disable-software-rasterizer")
+        with closing(webdriver.Chrome(options=options)) as driver:
+            logger.info("Setting up Chrome driver for North Herts bins scraping...")
 
-    address_name_number = number
-    address_postcode = postcode
+            # Set up the Chrome driver
+            driver.implicitly_wait(10)  # Wait for elements to load
+            driver.get(HOME_URL)
+            time.sleep(3)  # Wait for JS to load — tweak this as needed
 
-    # get the NHDC Waste and Recycling home page
-    home_page_request = requests.get(HOME_URL)
+            soup = BeautifulSoup(driver.page_source, "html.parser")
+            raw_text = [
+                span.get_text()
+                for span in soup.find_all("span", class_="value-as-text")
+            ]
+            logger.info("Scraped raw text from North Herts bins page.")
 
-    home_page_soup = BeautifulSoup(home_page_request.content, "html.parser")
+        # find the date matches and their index in the raw_text
+        collection_dates = [
+            (i, date_pattern.search(item).group(0))
+            for i, item in enumerate(raw_text)
+            if date_pattern.search(item)
+        ]
+        parsed_dates = [(i, parser.parse(date_str)) for i, date_str in collection_dates]
+        # next_collection_date = min(date for _, date in parsed_dates)
 
-    # look for the link that contains the search url
-    link = home_page_soup.find("a", href=re.compile(SEARCH_URL_CONTAINS))
+        # match bins to the bin date and only get the bins in the next collection date
+        matched_bins = [(date, raw_text[i - 1]) for i, date in parsed_dates]
 
-    search_url = link["href"]
+        return matched_bins
 
-    # the address search url to post to is just the form url with seq=2
-    # instead of seq=1, so build that url here
-    params = {"seq": "2"}
-    url_parts = urlparse(search_url)
-    query = dict(parse_qsl(url_parts.query))
-    query.update(params)
 
-    search_action_url = url_parts._replace(query=urlencode(query)).geturl()
-
-    # post to retrieve address results
-    headers = {"Content-Type": "application/x-www-form-urlencoded"}
-
-    data = {
-        "address_name_number": address_name_number,
-        "address_postcode": address_postcode,
-    }
-
-    results_request = requests.post(search_action_url,
-                                    data=data, headers=headers)
-
-    results_soup = BeautifulSoup(results_request.content, "html.parser")
-
-    link = results_soup.find("a", href=re.compile(SEARCH_URL_CONTAINS))
-
-    results_url = link["href"]
-
-    # log the full address name found
-    logger.info(link.text)
-
-    # the link href they provide is relative so join it to
-    # our base url before making request
-    final_url = urljoin(HOME_URL, results_url)
-
-    final_request = requests.post(final_url, headers=headers)
-
-    final_soup = BeautifulSoup(final_request.content, "html.parser")
-
-    # find all collection dates and descriptions and clean them into
-    # a list of tuples
-    lis = final_soup.find_all("li")
-    lis_strings = list(map(lambda l: l.text.strip(), lis))
-
-    def chunks(lst, n):
-        """Yield successive n-sized chunks from lst."""
-        for i in range(0, len(lst), n):
-            yield lst[i:i+n]
-
-    uncleaned_list = list(chunks(lis_strings, 3))
-    cleaned_list = [row for row in uncleaned_list if len(row) == 3]
-    cleaned_list = [
-        (parser.parse(row[1], dayfirst=True), row[2]) for row in cleaned_list
-    ]
-
-    return cleaned_list
+if __name__ == "__main__":
+    result = get_north_herts_bins()
+    print(result)
