@@ -1,5 +1,5 @@
 ## Bin Checker
-A small Python app to poll the North Hertfordshire (UK) bin collection website for a given address and send a message to a Telegram group with details of any upcoming bin collections.
+A small Python app to check upcoming North Hertfordshire (UK) bin collections for a given address via the Cloud9 Technologies API and send a message to a Telegram group with details.
 
 Because I always forget when bin day is and which bins it is.
 
