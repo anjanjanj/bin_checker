@@ -1,22 +1,7 @@
 FROM python:3.12.9-slim-bullseye
 
-RUN apt-get update -q && apt-get install --no-install-recommends -qy python3-dev g++ gcc inetutils-ping curl
-
-# Install Chromedriver dependencies and Chromium
-RUN apt-get update && apt-get install -y \
-    wget unzip curl gnupg ca-certificates fonts-liberation \
-    libnss3 libatk-bridge2.0-0 libx11-xcb1 libxcb1 libxcomposite1 libxdamage1 \
-    libxrandr2 libasound2 libxss1 libxtst6 libappindicator3-1 libgtk-3-0 \
-    chromium && \
-    rm -rf /var/lib/apt/lists/*
-
-# Download matching ChromeDriver v120 (new Chrome for Testing location)
-RUN wget -O /tmp/chromedriver.zip https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/120.0.6099.71/linux64/chromedriver-linux64.zip && \
-    unzip /tmp/chromedriver.zip -d /tmp/ && \
-    mv /tmp/chromedriver-linux64/chromedriver /usr/local/bin/chromedriver && \
-    chmod +x /usr/local/bin/chromedriver
-
-
+RUN apt-get update -q && apt-get install --no-install-recommends -qy python3-dev g++ gcc curl \
+    && rm -rf /var/lib/apt/lists/*
 
 # venv setup
 ENV VIRTUAL_ENV=/opt/venv
