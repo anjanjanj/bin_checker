@@ -10,6 +10,8 @@ Because I always forget when bin day is and which bins it is.
 ### Deploy (via Docker)
 Build image: `docker build -t bins .`
 
+For ARM64 (e.g. Raspberry Pi): `docker build --platform linux/arm64 -t bins .`
+
 Image export/import:
 ```
 docker save bins > bins.tar
