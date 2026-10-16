@@ -8,9 +8,9 @@ Because I always forget when bin day is and which bins it is.
 ![example](https://raw.githubusercontent.com/anjanjanj/bin_checker/master/.github/message.png)
 
 ### Deploy (via Docker)
-Build image: `docker build -t bins .`
+Build image: `docker build --pull -t bins .`
 
-For ARM64 (e.g. Raspberry Pi): `docker build --platform linux/arm64 -t bins .`
+For ARM64 (e.g. Raspberry Pi): `docker build --pull --platform linux/arm64 -t bins .`
 
 Image export/import:
 ```

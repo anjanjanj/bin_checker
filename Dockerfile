@@ -1,6 +1,7 @@
-FROM python:3.12.9-slim-bullseye
+FROM python:3.12-slim-bookworm
 
-RUN apt-get update -q && apt-get install --no-install-recommends -qy python3-dev g++ gcc curl \
+RUN apt-get update -q -o APT::Update::Error-Mode=any \
+    && apt-get install --no-install-recommends -qy curl \
     && rm -rf /var/lib/apt/lists/*
 
 # venv setup
@@ -35,7 +36,7 @@ RUN ARCH="${TARGETARCH:-amd64}" \
 
 
 # clean up dependencies
-RUN apt-get remove -qy python3-dev g++ gcc curl --purge \
+RUN apt-get remove -qy curl --purge \
  && apt-get autoremove -y \
  && rm -rf /var/lib/apt/lists/*
 
