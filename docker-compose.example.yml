@@ -9,3 +9,13 @@ services:
       - TELEGRAM_CHAT_ID=-123456789
       - HOUSE_NUMBER=123
       - HOUSE_POSTCODE=SG7XXX
+
+  bins-listener:
+    image: bins
+    restart: always
+    command: ["python", "/usr/local/code/bot_listener.py"]
+    environment:
+      - TELEGRAM_TOKEN=telegram_api_access_token
+      - TELEGRAM_CHAT_ID=-123456789
+      - HOUSE_NUMBER=123
+      - HOUSE_POSTCODE=SG7XXX
