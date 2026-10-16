@@ -9,3 +9,9 @@ services:
       - TELEGRAM_CHAT_ID=-123456789
       - HOUSE_NUMBER=123
       - HOUSE_POSTCODE=SG7XXX
+      - JSON_OUTPUT_PATH=/data/output/collections.json
+    volumes:
+      - bin-data:/data/output
+
+volumes:
+  bin-data:

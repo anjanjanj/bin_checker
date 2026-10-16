@@ -3,6 +3,7 @@ import os
 import pickle
 from datetime import datetime, timedelta
 from os import getenv
+from json_writer import write_collections_json
 from north_herts_bins import get_north_herts_bins
 from telegram_client import TelegramClient
 
@@ -24,6 +25,7 @@ class BinChecker:
         self.data_file_path = "data.pkl"
         self.last_update = self.load_last_update()
         self.days_from_now = days_from_now
+        self.json_output_path = getenv("JSON_OUTPUT_PATH") or None
 
         self.telegram = None
 
@@ -52,6 +54,9 @@ class BinChecker:
 
         logging.info("Getting bin data [%s, %s]")
         data = get_north_herts_bins()
+
+        if self.json_output_path:
+            write_collections_json(data, self.json_output_path)
 
         # get the next date in the list
         dates = [e[0] for e in data]

@@ -25,8 +25,22 @@ Example `docker-compose.yml` file in repo. Environment variables required:
 * *TELEGRAM_CHAT_ID*: Telegram chat group ID (bot must have been invited to this chat already)
 * *HOUSE_NUMBER*: House number to check bins for
 * *HOUSE_POSTCODE*: Postcode to check bins for
+* *JSON_OUTPUT_PATH* (optional): File path to write collection data as JSON. If set, a JSON file with all future collection dates is written after each run. Useful for sharing data with other apps via a Docker volume. If unset, no JSON file is written.
 
 Start (in directory): `docker-compose -p bins up -d`
+
+### JSON Output
+When `JSON_OUTPUT_PATH` is set, the app writes a JSON file after each run containing all future bin collection dates. The example `docker-compose.yml` uses a named volume (`bin-data`) mounted at `/data/output` for this purpose. To consume from another container, mount the same volume:
+```yaml
+volumes:
+  bin-data:
+    external: true
+
+services:
+  my-app:
+    volumes:
+      - bin-data:/path/in/my/container:ro
+```
 
 ### Future Todos
 * Support multiple addresses/bots/chats
